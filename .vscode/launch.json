@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Build Project",
+      "program": "${workspaceFolder}/out/parser/parser.js",
+      "args": [
+        "${workspaceFolder}/test-files/plant.ts"
+        // "/Users/koryporter/dev/smart-irrigation/packages/server/src/app.module.ts"
+      ],
+      "sourceMaps": true,
+      "smartStep": true,
+      "internalConsoleOptions": "openOnSessionStart"
+    }
+  ]
+}
