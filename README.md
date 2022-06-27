@@ -36,6 +36,12 @@ The map is then used to generate a DOT file, this DOT file can be used to visual
 2. `node out/parser/parser.js $file-to-parse-here$`
    - i.e. `node out/parser/parser.js test-files/plant.ts`
 
+## Config
+
+Modify the config at `parser-config.ts`, currently it supports
+
+- Ignoring classes
+
 ## Debugging
 
 - modify the launch.json to target the file you want to parse
