@@ -2,21 +2,20 @@ import * as ts from "typescript";
 import * as fs from "fs";
 import {
   isNodeExported,
-  printNodeTree,
   findMethodDeclarationNodesForClassDeclaration,
   findAllCallExpressionsInsideMethodDeclaration,
+  shouldIgnoreClass,
+  shouldIgnoreDependency,
+  getSortedModuleDependentCountList,
+  getSortedModuleDependenciesCountList,
 } from "./utils";
 import { ClassMap, Program } from "./types";
-import {
-  convertProgramToGraphViz,
-  convertProgramToGraphVizWithModuleCalls,
-} from "./graph";
+import { convertProgramToGraphViz } from "./graph";
 import config from "../parser-config";
 
 function addDependentsToProgramClasses(program: Program): Program {
   Object.entries(program).forEach(([programKey, { dependencies }]) => {
     Object.values(dependencies).forEach(({ type }) => {
-      // this is fixed when I support allowing call expressions in side funcs like promise.all
       if (program[type]) {
         program[type].dependents[programKey] = programKey;
       }
@@ -42,6 +41,26 @@ function generateClassMapForClass(
     .getConstructSignatures()
     .forEach((signature) => {
       signature.parameters.forEach((parameter) => {
+        const type = checker.typeToString(
+          checker.getTypeOfSymbolAtLocation(
+            parameter,
+            parameter.valueDeclaration!
+          )
+        );
+
+        if (shouldIgnoreDependency(type)) {
+          console.log("Ignoring dependency:", type);
+          return;
+        }
+
+        if (
+          config.shouldIgnoreNonCapitalisedTypes &&
+          type[0].toLowerCase() === type[0]
+        ) {
+          console.log("Ignoring dependency:", parameter.name);
+          return;
+        }
+
         moduleCallMap.dependencies[parameter.name] = {
           type: checker.typeToString(
             checker.getTypeOfSymbolAtLocation(
@@ -125,7 +144,7 @@ function generateCouplingMap(fileNames: string[], options: ts.CompilerOptions) {
         // This is a top level class, get its symbol
         const symbol = checker.getSymbolAtLocation(node.name);
 
-        if (config.ignoreClasses.includes(symbol.name)) {
+        if (shouldIgnoreClass(symbol.name)) {
           console.log("Ignoring: ", symbol.name);
           return;
         }
@@ -149,11 +168,16 @@ function generateCouplingMap(fileNames: string[], options: ts.CompilerOptions) {
 
   state = addDependentsToProgramClasses(state);
 
-  // console.log(convertProgramToGraphViz(state));
-  // console.log(convertProgramToGraphVizWithModuleCalls(state));
-
   fs.writeFileSync("module-map.json", JSON.stringify(state, null, 2));
   fs.writeFileSync("module-graph.dot", convertProgramToGraphViz(state));
+  fs.writeFileSync(
+    "module-sorted-dependent-list.json",
+    JSON.stringify(getSortedModuleDependentCountList(state), null, 2)
+  );
+  fs.writeFileSync(
+    "module-sorted-dependencies-list.json",
+    JSON.stringify(getSortedModuleDependenciesCountList(state), null, 2)
+  );
 }
 
 generateCouplingMap(process.argv.slice(2), {

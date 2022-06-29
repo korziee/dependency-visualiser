@@ -1,4 +1,7 @@
 import * as ts from "typescript";
+import * as fs from "fs";
+import config from "../parser-config";
+import { Program } from "./types";
 
 /**
  * Given a ts.Node and a ts.SyntaxKind this method will recursively dive into a node tree
@@ -80,4 +83,46 @@ export function findAllCallExpressionsInsideMethodDeclaration(
   loop(node);
 
   return callExpressionNodes;
+}
+
+export function shouldIgnoreClass(name: string): boolean {
+  if (config.ignoreClassesRegex.find((reg) => reg.test(name))) {
+    return true;
+  }
+
+  return false;
+}
+
+export function shouldIgnoreDependency(type: string): boolean {
+  return !!config.ignoreDependencyByTypeRegex.find((reg) => reg.test(type));
+}
+
+export function getSortedModuleDependenciesCountList(program: Program): any[] {
+  let list = Object.entries(program).map(([key, { dependencies }]) => {
+    return {
+      name: key,
+      dependencies: Object.keys(dependencies).length,
+    };
+  });
+
+  list = list.sort((a, b) => {
+    return b.dependencies - a.dependencies;
+  });
+
+  return list;
+}
+
+export function getSortedModuleDependentCountList(program: Program): any[] {
+  let list = Object.entries(program).map(([key, { dependents }]) => {
+    return {
+      name: key,
+      dependents: Object.keys(dependents).length,
+    };
+  });
+
+  list = list.sort((a, b) => {
+    return b.dependents - a.dependents;
+  });
+
+  return list;
 }

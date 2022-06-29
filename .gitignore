@@ -2,3 +2,5 @@ out
 node_modules
 module-map.json
 module-graph.dot
+module-sorted-dependencies-list.json
+module-sorted-dependent-list.json
