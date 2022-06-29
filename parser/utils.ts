@@ -86,6 +86,21 @@ export function findAllCallExpressionsInsideMethodDeclaration(
 }
 
 export function shouldIgnoreClass(name: string): boolean {
+  // valid class regex list exists, validate that first
+  if (config.allowListClassRegex) {
+    let allowed = config.allowListClassRegex.find((reg) => reg.test(name))
+      ? true
+      : false;
+
+    // even if something is allowed in the allow list, validate that it isn't in the deny list
+    if (config.ignoreClassesRegex.find((reg) => reg.test(name))) {
+      allowed = false;
+    }
+
+    return !allowed;
+  }
+
+  // check deny list
   if (config.ignoreClassesRegex.find((reg) => reg.test(name))) {
     return true;
   }
@@ -93,6 +108,9 @@ export function shouldIgnoreClass(name: string): boolean {
   return false;
 }
 
+/**
+ * Used to ignore dependencies of Classes like Logger, or EventService
+ */
 export function shouldIgnoreDependency(type: string): boolean {
   return !!config.ignoreDependencyByTypeRegex.find((reg) => reg.test(type));
 }

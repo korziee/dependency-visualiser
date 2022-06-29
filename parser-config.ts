@@ -1,5 +1,4 @@
 export default {
-  ignoreClassesRegex: [],
-  ignoreDependencyByTypeRegex: [],
+  allowListClassRegex: [],
   shouldIgnoreNonCapitalisedTypes: true,
 };
