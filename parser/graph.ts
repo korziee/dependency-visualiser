@@ -4,9 +4,10 @@ type GraphViz = string;
 
 function startGraphViz(name: string): GraphViz {
   let str = `digraph ${name} {`;
-  str += `\n\tsize="6,6"`;
-  str += `\n\tnode [color=lightblue2, style=filled];`;
-
+  str += `\n\tgraph [pad="0.5", nodesep="1", ranksep="5"];`;
+  str += `\n\tnode[shape = square, color=lightblue2, style=filled];`;
+  str += `\n\tsplines="true";`;
+  str += `\n\tsize="6,6";`;
   return str;
 }
 
